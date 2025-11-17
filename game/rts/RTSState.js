@@ -34,10 +34,11 @@ export class RTSState {
     const sR1 = this.loader.get('ChR1'), sR2 = this.loader.get('ChR2'), sR3 = this.loader.get('ChR3');
     const sL1 = this.loader.get('ChL1'), sL2 = this.loader.get('ChL2'), sL3 = this.loader.get('ChL3');
 
-    // Sprites de Entidades
-    const gemSprite = this.loader.get('gem');
-    const npcSprite = this.loader.get('npc');
-    const targetSprite = this.loader.get('target');
+  // Sprites de Entidades
+  const gemSprite = this.loader.get('gem');
+  // Usar las claves cargadas en main.js
+  const npcSprite = this.loader.get('npcAnciano');
+  const targetSprite = this.loader.get('npcDestino');
 
     // --- El Mundo ---
     this.worldWidth = 1888;
@@ -70,7 +71,7 @@ export class RTSState {
     this.questManager = new QuestManager(this.player);
 
     // --- NPCs y Gemas (COORDENADAS CORREGIDAS) ---
-    this.npcAnciano = new NPC("npcAnciano", 339, 2611, npcSprite);
+    this.npcAnciano = new NPC("npcAnciano", 340, 2590, npcSprite);
     this.npcDestino = new NPC("npcDestino", 1682, 892, targetSprite);
     
     this.items = [
@@ -199,8 +200,8 @@ export class RTSState {
     
     // 2. Dibujar Entidades (Items, NPCs)
     for (const item of this.items) item.render(ctx, 0.025); // Tu escala 0.025
-    this.npcAnciano.render(ctx, 0.5);
-    this.npcDestino.render(ctx, 1.0);
+    this.npcAnciano.render(ctx, 0.075);
+    this.npcDestino.render(ctx, 0.15);
 
     // 3. Dibujar Personaje
     const frame = this.player.currentAnimation.getCurrentFrame();

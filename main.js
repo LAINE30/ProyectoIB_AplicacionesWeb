@@ -13,7 +13,8 @@ let last = 0;
 const loader = new AssetLoader();
 
 loader.loadImage("gem", "assets/Items/hydro.png");
-loader.loadImage("npcAnciano", "assets/NPCs/DA1.png");
+// Usar DA2.png como textura para el NPC de la misión
+loader.loadImage("npcAnciano", "assets/NPCs/DA2.png");
 loader.loadImage("npcDestino", "assets/NPCs/DA3.png");
 
 await loader.loadAll();
