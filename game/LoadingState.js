@@ -1,5 +1,5 @@
 // game/LoadingState.js (Corregido)
-import { RTSState } from './rts/RTSState.js';
+import { MenuState } from './rts/MenuState.js';
 
 export class LoadingState {
   
@@ -12,8 +12,10 @@ export class LoadingState {
   }
 
   async loadAssets() {
-    // 1. Cargar assets del mundo
-    this.loader.loadImage('background', 'assets/magecity.png');
+  // 1. Cargar assets del mundo
+  this.loader.loadImage('background', 'assets/magecity.png');
+  // Fondo del menú principal
+  this.loader.loadImage('menuBackground', 'assets/Fondos/fondo_menu.jpg');
     
     // 2. Cargar todos los sprites del personaje
     this.loader.loadImage('ChD1', 'assets/ChD1.png');
@@ -57,7 +59,7 @@ export class LoadingState {
 
   update(dt) {
     if (this.assetsLoaded) {
-      this.stateManager.set(new RTSState());
+      this.stateManager.set(new MenuState());
     }
   }
 
