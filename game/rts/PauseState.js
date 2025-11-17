@@ -5,7 +5,6 @@ export class PauseState {
     this.stateManager = stateManager;
     this.canvas = stateManager.canvas;
     
-    // Botones como en la imagen de RPG (sin "Opciones")
     this.buttons = [
       { text: "Continuar", action: 'resume' },
       { text: "Menu Principal", action: 'menu' },
