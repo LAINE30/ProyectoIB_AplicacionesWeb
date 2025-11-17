@@ -1,30 +1,29 @@
-import { MenuState } from "./MenuState.js";
+import { MenuState } from './MenuState.js';
 
 export class GameOverState {
-    init(manager) {
-        this.manager = manager;
+  init(stateManager) {
+    this.stateManager = stateManager;
+  }
 
-        window.addEventListener("keydown", this.keyHandler = (e) => {
-            if (e.key === "Enter") {
-                manager.set(new MenuState());
-            }
-        });
+  handleInput(event) {
+    if (event.type === 'keydown' || event.type === 'mousedown') {
+      this.stateManager.set(new MenuState());
     }
+  }
 
-    render(ctx) {
-        const { width, height } = ctx.canvas;
+  update(dt) {}
 
-        ctx.fillStyle = "darkred";
-        ctx.fillRect(0, 0, width, height);
-
-        ctx.fillStyle = "white";
-        ctx.font = "32px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText("GAME OVER", width / 2, height / 2 - 20);
-        ctx.fillText("Presiona ENTER para volver al menú", width / 2, height / 2 + 20);
-    }
-
-    exit() {
-        window.removeEventListener("keydown", this.keyHandler);
-    }
+  render(ctx) {
+    ctx.fillStyle = '#0f0f10';
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    
+    ctx.fillStyle = '#eee';
+    ctx.font = '40px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('¡JUEGO COMPLETADO!', ctx.canvas.width / 2, ctx.canvas.height / 2 - 40);
+    
+    ctx.font = '20px system-ui';
+    ctx.fillText('¡Completaste todas las misiones!', ctx.canvas.width / 2, ctx.canvas.height / 2);
+    ctx.fillText('Haz clic para volver al Menú', ctx.canvas.width / 2, ctx.canvas.height / 2 + 40);
+  }
 }
