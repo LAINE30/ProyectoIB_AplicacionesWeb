@@ -14,7 +14,7 @@ export class QuestManager {
             },
             {
                 id: "anciano",
-                descripcion: "Encuentra al anciano",
+                descripcion: "Encuentra a tu amigo",
                 tipo: "npc",
                 objetivo: "npcAnciano",
                 completada: false,
@@ -22,7 +22,7 @@ export class QuestManager {
             },
             {
                 id: "entrega",
-                descripcion: "Entrega el objeto al destino",
+                descripcion: "Entrega el objeto a tu líder",
                 tipo: "entrega",
                 objetivo: "npcDestino",
                 completada: false,

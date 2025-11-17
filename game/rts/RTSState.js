@@ -153,6 +153,11 @@ export class RTSState {
 
     this.centerCameraOnPlayer();
     console.log("RTSState inicializado! 'P' para editor, 'Esc' para pausa, 'E' para interactuar.");
+
+    // --- SISTEMA DE TIEMPO LÍMITE ---
+    this.timeLimit = 120;        // segundos para completar misión
+    this.timeRemaining = this.timeLimit;
+
   }
 
   tryPlayMusic() {
@@ -217,6 +222,14 @@ export class RTSState {
 
   // --- UPDATE (Lógica Principal) ---
   update(dt) {
+    // --- TIMER GLOBAL ---
+    this.timeRemaining -= dt;
+    if (this.timeRemaining <= 0) {
+        // Tiempo agotado → GAME OVER
+        this.stateManager.set(new GameOverState());
+        return;
+    }  
+
     let currentSpeed = this.player.speed;
     if (this.isInStairZone(this.player) && !this.debugMode) currentSpeed = this.stairSpeed;
     else if (this.isInSlowZone(this.player) && !this.debugMode) currentSpeed = this.player.speed * 0.5;
@@ -283,6 +296,9 @@ export class RTSState {
     ctx.save();
     ctx.translate(-this.camera.x, -this.camera.y);
 
+    
+
+
     // 1. Dibujar Mundo
     ctx.fillStyle = '#0f0f10';
     ctx.fillRect(this.camera.x, this.camera.y, this.canvasWidth, this.canvasHeight);
@@ -333,8 +349,82 @@ export class RTSState {
     
     // Dibuja el HUD de misiones
     drawHUD(ctx, this.questManager);
+
+    // --- HUD DEL TIEMPO (mejorado: mm:ss, barra, color/efecto pulsante en tiempo bajo) ---
+    {
+      const time = Math.max(0, this.timeRemaining);
+      const total = Math.max(1, this.timeLimit);
+      const minutes = Math.floor(time / 60);
+      const seconds = Math.floor(time % 60).toString().padStart(2, '0');
+      const timeText = `${minutes}:${seconds}`;
+      const paddingX = 12;
+      const paddingY = 8;
+      const fontSize = 22;
+      ctx.font = `${fontSize}px system-ui`;
+      ctx.textAlign = 'right';
+
+      // Porcentaje restante
+      const pct = Math.max(0, Math.min(1, time / total));
+
+      // Color según umbrales
+      let color = 'rgba(80,220,120,1)'; // verde
+      if (time <= 10) color = 'rgba(255,60,60,1)'; // rojo urgente
+      else if (time <= 30) color = 'rgba(255,165,0,1)'; // naranja
+
+      // Pulso cuando urgente
+      const needPulse = time <= 10;
+      const pulse = needPulse ? 1 + Math.sin(performance.now() / 140) * 0.06 : 1;
+
+      const label = `Tiempo: ${timeText}`;
+      const textMetrics = ctx.measureText(label);
+      const boxWidth = Math.ceil(textMetrics.width) + paddingX * 2;
+      const boxHeight = fontSize + paddingY * 2;
+      const x = this.canvasWidth - 20 - boxWidth;
+      const y = 10;
+
+      // Fondo semitransparente con sombra
+      ctx.save();
+      ctx.globalAlpha = 0.95;
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      const radius = 8;
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + boxWidth - radius, y);
+      ctx.quadraticCurveTo(x + boxWidth, y, x + boxWidth, y + radius);
+      ctx.lineTo(x + boxWidth, y + boxHeight - radius);
+      ctx.quadraticCurveTo(x + boxWidth, y + boxHeight, x + boxWidth - radius, y + boxHeight);
+      ctx.lineTo(x + radius, y + boxHeight);
+      ctx.quadraticCurveTo(x, y + boxHeight, x, y + boxHeight - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      ctx.fill();
+
+      // Barra de tiempo (debajo del texto)
+      const barMargin = 8;
+      const barX = x + barMargin;
+      const barY = y + boxHeight - barMargin - 6;
+      const barW = boxWidth - barMargin * 2;
+      const barH = 6;
+      // Fondo de barra
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      ctx.fillRect(barX, barY, barW, barH);
+      // Progreso
+      ctx.fillStyle = color;
+      ctx.fillRect(barX, barY, Math.max(0, barW * pct), barH);
+
+      // Texto con posible pulso
+      ctx.translate(x + boxWidth - paddingX, y + paddingY + fontSize / 2);
+      ctx.scale(pulse, pulse);
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = 'rgba(0,0,0,0.7)';
+      ctx.shadowBlur = 6;
+      ctx.fillText(label, 0, 0);
+      ctx.restore();
+    }
   }
 
+  
 
   // --- Manejo de Input ---
   handleInput(event) {
