@@ -141,7 +141,7 @@ export class MenuState {
     ctx.fillStyle = '#eee';
     ctx.font = '40px system-ui';
     ctx.textAlign = 'center';
-    ctx.fillText('Mi Juego de Misiones', cw / 2, 80);
+    ctx.fillText('Reinos de Luminaria', cw / 2, 80);
 
     // Botones
     const startY = ch / 2 - (this.buttons.length * 25);

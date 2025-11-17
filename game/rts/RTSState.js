@@ -55,11 +55,21 @@ export class RTSState {
   window.addEventListener("keydown", this._onUserInteract, { passive: true });
 }
     this.sounds = {
-    move: new Audio('/assets/Audio/soundEfect.wav'),
-    interact: new Audio('/assets/Audio/interact.wav'),
-    pause: new Audio('/assets/Audio/pause.wav'),
-    debug: new Audio('/assets/Audio/debug.wav'),
+    // Preferir los audios ya cargados por el loader (si existen), con fallback a rutas directas
+    move: this.loader.get('move') || new Audio('/assets/Audio/soundEfect.wav'),
+    interact: this.loader.get('interact') || new Audio('/assets/Audio/interact.wav'),
+    pause: this.loader.get('pause') || new Audio('/assets/Audio/pause.wav'),
+    debug: this.loader.get('debug') || new Audio('/assets/Audio/debug.wav'),
+    collect: this.loader.get('collect') || new Audio('/assets/Audio/CollectItem.wav'),
+    dialog: this.loader.get('dialog') || new Audio('/assets/Audio/Dialogo.wav')
   };
+
+    // Configuración específica para el SFX de movimiento: usar un solo Audio (loop)
+    // en lugar de clonar continuamente para evitar solapamiento y distorsión.
+    this.sounds.move.loop = true;
+    // Volumen más bajo para que no sature cuando se reproduce en bucle.
+    this.sounds.move.volume = 0.06;
+    this.movementAudio = this.sounds.move;
 
     // Evitar lag cargando el sonido
   for (let s in this.sounds) {
@@ -161,6 +171,15 @@ export class RTSState {
   }
 
   playSFX(audio) {
+  // Para la mayoría de SFX (interact, pause, debug) usamos clones para permitir
+  // reproducciones superpuestas cortas. Para el SFX de movimiento, gestionamos
+  // su reproducción por transición de teclas (ver handleInput) y no usamos clones.
+  if (!audio) return;
+  if (audio === this.movementAudio) {
+    // No clonar el audio de movimiento aquí (se maneja por key transitions)
+    if (audio.paused) audio.play().catch(() => {});
+    return;
+  }
   const s = audio.cloneNode(); // Permite reproducir el mismo sonido varias veces
   s.volume = 0.1;              // Ajusta volumen
   s.play();
@@ -184,6 +203,8 @@ export class RTSState {
   interact() {
     // Revisa si está cerca del anciano
     if (this.distance(this.player, this.npcAnciano) < 40) { // 40px de rango
+        // Reproducir diálogo del anciano si está disponible
+        if (this.sounds && this.sounds.dialog) this.playSFX(this.sounds.dialog);
         this.questManager.interactuarConNPC("npcAnciano");
         return; // Solo interactúa con uno a la vez
     }
@@ -246,6 +267,8 @@ export class RTSState {
     for (const item of this.items) {
       if (!item.collected && this.checkCollision(this.player, item)) {
           item.collected = true;
+          // Reproducir SFX de recogida (se clona en playSFX para permitir superposición corta)
+          if (this.sounds && this.sounds.collect) this.playSFX(this.sounds.collect);
           this.questManager.actualizarProgreso();
       }
     }
@@ -319,21 +342,37 @@ export class RTSState {
     const key = event.key.toLowerCase();
     const isPressed = (event.type === 'keydown');
 
-    // Movimiento
-    if ((key === 'w' || key === 'arrowup') && isPressed) 
-      this.playSFX(this.sounds.move);
-    if ((key === 'a' || key === 'arrowleft') && isPressed) 
-      this.playSFX(this.sounds.move);
-    if ((key === 's' || key === 'arrowdown') && isPressed) 
-      this.playSFX(this.sounds.move);
-    if ((key === 'd' || key === 'arrowright') && isPressed) 
-      this.playSFX(this.sounds.move);
+    // Guardamos el estado previo para detectar transiciones (no-pressed -> pressed)
+    const prev = { ...this.keyState };
 
-    // Cambiar estado de movimiento
+    // Actualizar estado de movimiento según la tecla
     if (key === 'w' || key === 'arrowup') this.keyState.w = isPressed;
     if (key === 'a' || key === 'arrowleft') this.keyState.a = isPressed;
     if (key === 's' || key === 'arrowdown') this.keyState.s = isPressed;
     if (key === 'd' || key === 'arrowright') this.keyState.d = isPressed;
+
+    // Reproducir SFX de movimiento solo cuando hay una transición de no-pressed -> pressed
+    const startedMoving = (
+      (this.keyState.w && !prev.w) ||
+      (this.keyState.a && !prev.a) ||
+      (this.keyState.s && !prev.s) ||
+      (this.keyState.d && !prev.d)
+    );
+
+    if (startedMoving) {
+      // Si aún no se está reproduciendo el audio de movimiento, iniciarlo.
+      if (this.movementAudio && this.movementAudio.paused) {
+        this.movementAudio.play().catch(() => {});
+      }
+    }
+
+    // Si se soltó una tecla y no queda ninguna tecla de movimiento presionada, pausar el audio
+    if (!this.keyState.w && !this.keyState.a && !this.keyState.s && !this.keyState.d) {
+      if (this.movementAudio && !this.movementAudio.paused) {
+        this.movementAudio.pause();
+        this.movementAudio.currentTime = 0;
+      }
+    }
 
     // Debug Toggle
     if (key === 'p' && isPressed) {
