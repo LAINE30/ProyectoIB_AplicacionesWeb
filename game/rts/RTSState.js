@@ -1,5 +1,10 @@
 // game/rts/RTSState.js
 import { Animation } from '/engine/Animation.js';
+import { QuestManager } from "/engine/QuestManager.js";
+import { NPC } from "/engine/NPC.js";
+import { Item } from "/engine/Item.js";
+import { drawHUD } from "/game/hud/HUD.js";
+
 
 export class RTSState {
   
@@ -68,6 +73,8 @@ export class RTSState {
       },
       currentAnimation: null
     };
+
+    // Inicializar la animación actual
     this.player.currentAnimation = this.player.animations.idle_down;
     
     this.stairSpeed = this.player.speed * 0.7; 
@@ -88,6 +95,23 @@ export class RTSState {
 
     this.centerCameraOnPlayer();
     console.log("RTSState inicializado! Presiona 'P' para entrar al editor.");
+
+    this.questManager = new QuestManager(this.player);
+
+    // Crear NPCs
+    this.npcAnciano = new NPC("npcAnciano", 300, 200);
+    this.npcDestino  = new NPC("npcDestino", 800, 200);
+
+    
+    // Crear 5 gemas
+    this.items = [
+        new Item("gema1", 120, 140),
+        new Item("gema2", 240, 160),
+        new Item("gema3", 350, 180),
+        new Item("gema4", 420, 200),
+        new Item("gema5", 510, 240)
+    ];
+
   }
   
   onResize(width, height) {
@@ -179,12 +203,29 @@ export class RTSState {
       }
       if (this.keyPress.g) { this.saveLevelDataToFile(); this.keyPress.g = false; }
     }
+
+
+    // 7. Comprobar Interacciones con NPCs
+    for (const item of this.items) {
+    if (!item.collected &&
+        this.player.x < item.x + item.width &&
+        this.player.x + this.player.width > item.x &&
+        this.player.y < item.y + item.height &&
+        this.player.y + this.player.height > item.y) {
+
+        item.collected = true;
+        this.questManager.actualizarProgreso();
+    }
+    }
+
   }
 
   // --- RENDER (No cambia) ---
   render(ctx) {
     ctx.save();
     ctx.translate(-this.camera.x, -this.camera.y);
+
+    
 
     // 1. Dibujar Mundo
     ctx.fillStyle = '#0f0f10';
@@ -198,7 +239,12 @@ export class RTSState {
     const drawX = this.player.x + (this.player.width / 2) - (scaledWidth / 2);
     const drawY = this.player.y + this.player.height - scaledHeight;
     ctx.drawImage(frame, drawX, drawY, scaledWidth, scaledHeight);
-
+    // 3. Dibujar NPCs
+    // dibujas mapa y objetos
+    for (const item of this.items) item.render(ctx);
+    this.npcAnciano.render(ctx);
+    this.npcDestino.render(ctx);
+    
     // 3. Dibujar Debug
     if (this.debugMode) {
       // (Dibujo de Colisiones, Zonas Lentas, Escaleras y Fantasma)
@@ -228,27 +274,64 @@ export class RTSState {
       ctx.fillStyle = 'lime';
       ctx.fillText("EDITOR: (X) Colisión | (L) Lento | (K) Escalera | (B) Borrar | (G) Guardar", 10, 80);
     }
+
+    
+    //this.player.render(ctx);
+
+    // HUD
+    drawHUD(ctx, this.questManager);
+
   }
 
   // --- (HandleInput no cambia) ---
   handleInput(event) {
-    if (event.type === 'keydown' || event.type === 'keyup') {
-      const key = event.key.toLowerCase();
-      const isPressed = (event.type === 'keydown');
-      if (key === 'w') this.keyState.w = isPressed;
-      if (key === 'a') this.keyState.a = isPressed;
-      if (key === 's') this.keyState.s = isPressed;
-      if (key === 'd') this.keyState.d = isPressed;
-      if (key === 'p' && isPressed) { this.debugMode = !this.debugMode; }
-      if (this.debugMode && isPressed) {
+    const key = event.key.toLowerCase();
+    const isPressed = (event.type === "keydown");
+
+    // --- Movimiento ---
+    if (key === "w") this.keyState.w = isPressed;
+    if (key === "a") this.keyState.a = isPressed;
+    if (key === "s") this.keyState.s = isPressed;
+    if (key === "d") this.keyState.d = isPressed;
+
+    // --- Interactuar con NPC (E) ---
+    if (key === "e" && isPressed) {
+        if (this.interact) {
+            this.interact();   // Llama al método que revisa distancia e interactúa
+        }
+    }
+
+    // --- Debug Mode ---
+    if (key === "p" && isPressed) {
+        this.debugMode = !this.debugMode;
+    }
+
+    // --- Comandos debug ---
+    if (this.debugMode && isPressed) {
         if (key === 'x') this.keyPress.x = true;
         if (key === 'b') this.keyPress.b = true;
         if (key === 'g') this.keyPress.g = true;
         if (key === 'l') this.keyPress.l = true;
         if (key === 'k') this.keyPress.k = true;
-      }
     }
-  }
+}
+
+
+
+interact() {
+        if (this.distance(this.player, this.npcAnciano) < 40) {
+            this.questManager.interactuarConNPC("npcAnciano");
+        }
+
+        if (this.distance(this.player, this.npcDestino) < 40) {
+            this.questManager.interactuarConNPC("npcDestino");
+        }
+    }
+
+    distance(a, b) {
+        return Math.hypot((a.x - b.x), (a.y - b.y));
+    }
+
 
   exit() {
     console.log("Saliendo de RTSState");

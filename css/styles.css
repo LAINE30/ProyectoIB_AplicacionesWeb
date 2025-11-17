@@ -1,0 +1,17 @@
+/* --- ESTILOS GENERALES --- */
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #0f0f10;
+  color: #eee;
+  font-family: system-ui;
+  overflow: hidden; /* Oculta barras de scroll */
+}
+
+/* --- CANVAS DEL JUEGO --- */
+canvas {
+  display: block;
+  margin: auto;
+  margin-top: 20px; /* Pequeño margen superior */
+  image-rendering: pixelated; /* Ideal para juegos retro */
+}

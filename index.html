@@ -4,27 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Examen Final — HTML5 Game</title>
-    <style>
-      /* --- MODIFICADO --- */
-      html, body {
-        margin: 0;
-        padding: 0;
-        background: #0f0f10;
-        color: #eee;
-        font-family: system-ui;
-        overflow: hidden; /* Oculta barras de scroll */
-      }
-      canvas {
-        /* Centra el canvas en la pantalla */
-        display: block;
-        margin: auto;
-        margin-top: 20px; /* Un pequeño margen superior */
-      }
-      /* --- FIN MODIFICADO --- */
-    </style>
+
+    <!-- Archivo CSS externo -->
+    <link rel="stylesheet" href="css/styles.css">
   </head>
+
   <body>
     <canvas id="game" width="1920" height="3104"></canvas>
+
+    <!-- Código del juego -->
     <script type="module" src="./main.js"></script>
   </body>
 </html>

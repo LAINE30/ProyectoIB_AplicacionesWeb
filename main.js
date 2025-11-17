@@ -2,13 +2,22 @@
 import { StateManager } from './engine/stateManager.js';
 import { AssetLoader } from './engine/loader.js';
 import { LoadingState } from './game/LoadingState.js';
+import { QuestManager } from './engine/QuestManager.js';
 
 // --- Configuración Inicial ---
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let last = 0;
 
+// --- Cargador de Assets ---
 const loader = new AssetLoader();
+
+loader.loadImage("gem", "assets/Items/hydro.png");
+loader.loadImage("npcAnciano", "assets/NPCs/DA1.png");
+loader.loadImage("npcDestino", "assets/NPCs/DA3.png");
+
+await loader.loadAll();
+
 // --- MODIFICADO: Pasamos el canvas al manager ---
 const stateManager = new StateManager(loader, canvas); 
 
@@ -53,6 +62,9 @@ window.addEventListener('keyup', (e) => stateManager.handleInput(e));
 
 // --- NUEVO: Listener de Redimensionado ---
 window.addEventListener('resize', resizeCanvas);
+
+//window.questManager = questManager; // opcional debug
+
 
 // --- Iniciar el juego y Ajustar tamaño inicial ---
 resizeCanvas(); // <-- Llamamos una vez al inicio
