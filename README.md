@@ -113,3 +113,17 @@ Cada misión avanza automáticamente a la siguiente.
 ## 📜 Licencia
 
 No hay.
+
+## Autoevaluación
+
+•	Funcionalidad núcleo 20/25%
+•	Mecánicas/IA/Pathfinding o puzzles 10/15%
+•	Física/Colisiones 5%/10%
+•	Rendimiento 10%
+•	UX/UI 8/10%
+•	Audio 5%
+•	Código/arquitectura 10/15%
+•	Documentación/presentación 8/10%
+•	Bonus 0%/5%: multijugador simple / minimapa / PWA
+**TOTAL: 76/100**
+
