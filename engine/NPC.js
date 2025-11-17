@@ -8,17 +8,6 @@ export class NPC {
         this.height = 32;
     }
 
-
-    draw(ctx, offsetX, offsetY) {
-        ctx.drawImage(
-        this.sprite,
-        this.x - offsetX,
-        this.y - offsetY,
-        this.width,
-        this.height
-        );
-    }
-
     render(ctx) {
         if (this.sprite) {
             ctx.drawImage(this.sprite, this.x, this.y);

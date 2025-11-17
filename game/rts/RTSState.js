@@ -101,7 +101,6 @@ export class RTSState {
     // Crear NPCs
     this.npcAnciano = new NPC("npcAnciano", 300, 200);
     this.npcDestino  = new NPC("npcDestino", 800, 200);
-
     
     // Crear 5 gemas
     this.items = [
@@ -241,9 +240,11 @@ export class RTSState {
     ctx.drawImage(frame, drawX, drawY, scaledWidth, scaledHeight);
     // 3. Dibujar NPCs
     // dibujas mapa y objetos
+    
     for (const item of this.items) item.render(ctx);
     this.npcAnciano.render(ctx);
     this.npcDestino.render(ctx);
+    
     
     // 3. Dibujar Debug
     if (this.debugMode) {
