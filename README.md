@@ -1,34 +1,115 @@
-# Examen Final — HTML5 Game
-Estructura base para iniciar el proyecto.
+# 🎮 Juego 2D --- ClassicArcade
 
-## Ejecutar
-Use un servidor estático (p.ej. VS Code Live Server) para abrir `index.html`.
+Este es un juego 2D desarrollado en JavaScript para la materia de **Aplicaciones Web**
+El código puede ser escalado y está preparado para escalar.
 
-## Arquetipos (elige uno)
-- `game/rts`   : RTS-Lite (paneo + selección)
-- `game/arcade`: Shooter/Side-Scrolling
-- `game/puzzle`: Puzzle física
+## 📂 Estructura del Proyecto
 
-## Entregables
-- Build jugable + capturas + video
-- README con controles e instrucciones
+    /assets
+        /Audio
+            menuMusic.wav
+            gameMusic.wav
+            efecto1.wav
+        /Images
+            player.png
+            tileset.png
+            items.png
+    /css
+        styles.css
+    /engine
+        Animationjs
+        entity.js
+        gameLoop.js
+        Item.js
+        level_data.txt
+        loader.js
+        NPC.js
+        QuestManager.js
+    /game
+        /rts
+          Gameoverstate.js
+          Menustate.js
+          RTSState.js
+          LoadingState.js
+      
+    index.html
+    main.js
+
+## ▶️ Ejecución
+
+Para evitar bloqueos del navegador, **no abras el HTML directamente**.\
+Debes usar un servidor local:
+
+### Opción 1 (Recomendado)
+
+    Extensión VSCode: Live Server
+
+### Opción 2 
+
+    npx http-server
+
+### Opción 3
+
+    python -m http.server
+
+Luego abra:
+
+    http://localhost:8080
+
+## 🕹️ Controles
+
+### Movimiento
+
+  Tecla       Acción
+  ----------- -------------------------
+  **W / ↑**   Moverse arriba / Saltar
+  **A / ←**   Moverse izquierda
+  **S / ↓**   Agacharse / Bajar
+  **D / →**   Moverse derecha
+
+### Interacción y Sistema
+
+  Tecla         Acción
+  ------------- -------------
+  **E**         Interactuar
+  **ESC / U**   Pausar
+  **P**         Modo Debug
 
 
-## Logica
-QuestManager
- ├── lista de misiones
- ├── misión activa
- ├── cumplir requisitos
- ├── desbloquear recompensas (power-ups)
- └── avanzar a la siguiente misión
+## 🔊 Sistema de Audio
 
-## mision
-{
-  id: "gemas1",
-  descripcion: "Recoge 5 gemas",
-  tipo: "coleccion", // o "npc" o "entrega"
-  objetivo: 5,       // # gemas, o id de npc, etc
-  progreso: 0,
-  completada: false,
-  recompensa: "speedBoost" // power-up desbloqueado
-}
+El audio está sincronizado con los estados del juego:
+
+-   **MenuState:** reproduce `menuMusic`
+-   **GameState:** reproduce `gameMusic`
+
+## 🎯 Sistema de Misiones (QuestManager)
+
+Al iniciar el juego aparece una ventana con el objetivo principal.\
+Misiones incluidas:
+
+1.  **NIVEL1: Recoger 5 gemas** (speedBoost)
+2.  **NIVEL2: Encontrar al anciano** (doubleJump)
+3.  **NIVEL3: Entregar objeto al destino** (shield)
+
+Cada misión avanza automáticamente a la siguiente.
+
+## 🧩 Máquina de Estados
+
+    MenuState → GameState → PauseState → GameState
+
+## 💡 Características Principales
+
+-   Motor propio modular
+-   Misiones con progreso
+-   Editor / Debug integrado
+-   Interacción con NPCs y objetos
+
+## 🏗️ Requisitos
+
+-   Navegador moderno\
+-   Servidor local
+
+## 📜 Licencia
+
+No hay.
