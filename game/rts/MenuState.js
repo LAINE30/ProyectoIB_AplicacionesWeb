@@ -3,69 +3,120 @@ import { RTSState } from './RTSState.js';
 export class MenuState {
   init(stateManager) {
     this.stateManager = stateManager;
-    this.loader = stateManager.loader;
     this.canvas = stateManager.canvas;
+    this.loader = stateManager.loader;
 
-    // Opciones del menú
+    // --- AUDIO ---
+    this.menuMusic = this.loader.get('menuMusic');
+
+    if (this.menuMusic) {
+      this.menuMusic.loop = true;
+      this.menuMusic.volume = 0.05;
+
+      // Intento inicial
+      this.tryPlayMusic();
+
+      // Listener para desbloquear autoplay
+      this._onUserInteract = () => {
+        if (this.menuMusic.paused) {
+          this.menuMusic.play().catch(() => {});
+        }
+        // limpiar después de usarse una vez
+        window.removeEventListener("pointerdown", this._onUserInteract);
+        window.removeEventListener("keydown", this._onUserInteract);
+      };
+
+      window.addEventListener("pointerdown", this._onUserInteract, { passive: true });
+      window.addEventListener("keydown", this._onUserInteract, { passive: true });
+    }
+
+    // --- Carga de fondo ---
+    this.background = new Image();
+    this.isBgLoaded = false;
+    this.background.onload = () => (this.isBgLoaded = true);
+    this.background.src = "/assets/Fondos/j92fMX.png";
+
+    // --- Botones ---
     this.buttons = [
-      { text: 'Iniciar Partida', action: 'start' },
-      { text: 'Cargar Partida', action: 'load' },
-      { text: 'Salir', action: 'exit' }
+      { text: "Iniciar Nueva Partida", action: 'start' },
+      { text: "Continuar", action: 'resume' },
+      { text: "Modo Multijugador", action: 'multiplayer' },
+      { text: "Salir", action: 'exit' },
     ];
-    this.selectedButton = 0;
 
-    // Intentamos obtener la imagen de fondo (debe estar cargada por LoadingState)
-    this.bg = this.loader.get('menuBackground');
+    this.selectedButton = 0;
+  }
+
+  // Intenta reproducir la música del menú
+  tryPlayMusic() {
+    if (!this.menuMusic) return;
+
+    this.menuMusic.play().catch(() => {
+      console.warn("Autoplay bloqueado — esperando interacción del usuario.");
+    });
+  }
+
+  // Importante: cuando salimos del menú,
+  // debemos detener la música correctamente.
+  onExit() {
+    if (this.menuMusic) {
+      this.menuMusic.pause();
+      this.menuMusic.currentTime = 0;
+    }
   }
 
   handleInput(event) {
-    if (event.type !== 'keydown' && event.type !== 'mousedown') return;
+    if (event.type !== 'keydown') return;
+    const key = event.key.toLowerCase();
 
-    if (event.type === 'keydown') {
-      const key = event.key.toLowerCase();
-      if (key === 'w' || key === 'arrowup') {
-        this.selectedButton = (this.selectedButton > 0) ? this.selectedButton - 1 : this.buttons.length - 1;
-      }
-      if (key === 's' || key === 'arrowdown') {
-        this.selectedButton = (this.selectedButton < this.buttons.length - 1) ? this.selectedButton + 1 : 0;
-      }
-      if (key === 'enter' || key === 'e' || key === ' ') {
-        this.selectOption();
-      }
+    if (key === 'escape') {
+      this.stateManager.pop();
+      return;
     }
 
-    if (event.type === 'mousedown') {
-      // Soporte básico de click: determina qué botón fue clickeado por coordenadas
-      const rect = this.canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-      const centerX = this.canvas.width / 2;
-      const startY = this.canvas.height / 2;
-      for (let i = 0; i < this.buttons.length; i++) {
-        const buttonY = startY + i * 50;
-        const textWidth = 300; // área aproximada
-        if (x > centerX - textWidth && x < centerX + textWidth && y > buttonY - 24 && y < buttonY + 12) {
-          this.selectedButton = i;
-          this.selectOption();
-          break;
-        }
-      }
+    // Navegación
+    if (key === 'w' || key === 'arrowup') {
+      this.selectedButton =
+        (this.selectedButton > 0)
+          ? this.selectedButton - 1
+          : this.buttons.length - 1;
+    }
+
+    if (key === 's' || key === 'arrowdown') {
+      this.selectedButton =
+        (this.selectedButton < this.buttons.length - 1)
+          ? this.selectedButton + 1
+          : 0;
+    }
+
+    // Selección
+    if (key === 'enter' || key === 'e') {
+      this.selectOption();
     }
   }
 
   selectOption() {
     const action = this.buttons[this.selectedButton].action;
+
     switch (action) {
-      case 'start':
+      case 'start':{
+        this.onExit(); // <<< Detener música del menú
         this.stateManager.set(new RTSState());
         break;
-      case 'load':
-        // Placeholder: implementaremos carga real más adelante
-        console.log('Cargar Partida seleccionado (no implementado aún)');
+      }
+
+      case 'resume': {
+        this.onExit(); // <<< Detener música del menú
+        this.stateManager.set(new RTSState());
         break;
+      }
+
+      case 'multiplayer':
+        console.log("Modo multijugador no implementado aún.");
+        break;
+
       case 'exit':
-        // Intentar cerrar la pestaña (puede ser bloqueado por el navegador)
-        window.close();
+        console.log("Salir del juego.");
         break;
     }
   }
@@ -73,42 +124,59 @@ export class MenuState {
   update(dt) {}
 
   render(ctx) {
-    // Dibujar fondo (si está disponible)
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    if (this.bg) {
-      try {
-        ctx.drawImage(this.bg, 0, 0, ctx.canvas.width, ctx.canvas.height);
-      } catch (e) {
-        // Si falló el drawImage, caeremos al fondo sólido
-        ctx.fillStyle = '#0f0f10';
-        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-      }
-    } else {
-      ctx.fillStyle = '#0f0f10';
-      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    }
+    const cw = ctx.canvas.width;
+    const ch = ctx.canvas.height;
 
-    const menuX = ctx.canvas.width / 2;
-    const menuY = ctx.canvas.height / 2 - 60;
+    ctx.clearRect(0, 0, cw, ch);
+
+    // Fondo
+    if (this.isBgLoaded) {
+      ctx.drawImage(this.background, 0, 0, cw, ch);
+    } else {
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, cw, ch);
+    }
 
     // Título
-    ctx.fillStyle = '#fff';
-    ctx.font = '48px system-ui';
+    ctx.fillStyle = '#eee';
+    ctx.font = '40px system-ui';
     ctx.textAlign = 'center';
-    ctx.fillText('Mythra Quest', menuX, menuY);
+    ctx.fillText('Mi Juego de Misiones', cw / 2, 80);
 
     // Botones
-    ctx.font = '28px system-ui';
+    const startY = ch / 2 - (this.buttons.length * 25);
+    ctx.font = '24px system-ui';
+
     for (let i = 0; i < this.buttons.length; i++) {
-      const button = this.buttons[i];
-      const buttonY = menuY + 60 + (i * 50);
+      const btn = this.buttons[i];
+      const y = startY + i * 50;
+
       if (i === this.selectedButton) {
-        ctx.fillStyle = 'yellow';
-        ctx.fillText(`> ${button.text} <`, menuX, buttonY);
+        const textWidth = ctx.measureText(btn.text).width;
+        const padding = 16;
+
+        ctx.fillStyle = '#2b6cb0';
+        ctx.fillRect(
+          cw / 2 - textWidth / 2 - padding,
+          y - 28,
+          textWidth + padding * 2,
+          40
+        );
+
+        ctx.fillStyle = '#fff';
       } else {
-        ctx.fillStyle = '#eee';
-        ctx.fillText(button.text, menuX, buttonY);
+        ctx.fillStyle = '#ddd';
       }
+
+      ctx.fillText(btn.text, cw / 2, y);
     }
+
+    ctx.font = '16px system-ui';
+    ctx.fillStyle = '#aaa';
+    ctx.fillText(
+      'Usa W/S o flechas para navegar, Enter para seleccionar',
+      cw / 2,
+      ch - 60
+    );
   }
 }

@@ -34,6 +34,11 @@ export class LoadingState {
     this.loader.loadImage('ChL2', 'assets/ChL2.png');
     this.loader.loadImage('ChL3', 'assets/ChL3.png');
 
+    // 2.5 Cargar assets de audio
+    this.loader.loadAudio('menuMusic', 'assets/Audio/Pista1.wav');
+    this.loader.loadAudio('gameMusic', 'assets/Audio/Pista3.wav');
+
+    
     // Espera a que se carguen las imágenes
     await this.loader.loadAll();
 

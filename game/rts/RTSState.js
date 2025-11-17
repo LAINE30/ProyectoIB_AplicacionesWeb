@@ -24,6 +24,51 @@ export class RTSState {
     this.stateManager = stateManager;
     this.loader = this.stateManager.loader;
 
+    //cargar audio
+    // --- AUDIO ---
+    this.gameMusic = this.loader.get('gameMusic');
+    // --- AUDIO DEL JUEGO ---
+    if (this.gameMusic) {
+  this.gameMusic.loop = true;
+  this.gameMusic.volume = 0.05;
+
+   
+
+  // Evitar lag cargando el sonido
+  for (let s in this.sounds) {
+    this.sounds[s].load();
+  }
+
+  // Intento inicial de reproducir
+  this.tryPlayMusic();
+
+  // Listener para desbloquear autoplay cuando el usuario interactúe
+  this._onUserInteract = () => {
+    if (this.gameMusic.paused) {
+      this.gameMusic.play().catch(() => {});
+    }
+    window.removeEventListener("pointerdown", this._onUserInteract);
+    window.removeEventListener("keydown", this._onUserInteract);
+  };
+
+  window.addEventListener("pointerdown", this._onUserInteract, { passive: true });
+  window.addEventListener("keydown", this._onUserInteract, { passive: true });
+}
+    this.sounds = {
+    move: new Audio('/assets/Audio/soundEfect.wav'),
+    interact: new Audio('/assets/Audio/interact.wav'),
+    pause: new Audio('/assets/Audio/pause.wav'),
+    debug: new Audio('/assets/Audio/debug.wav'),
+  };
+
+    // Evitar lag cargando el sonido
+  for (let s in this.sounds) {
+    this.sounds[s].load();
+  }
+
+    
+
+
     // --- Cargar Assets ---
     this.bgSprite = this.loader.get('background');
     const levelData = this.loader.get('levelData');
@@ -99,6 +144,28 @@ export class RTSState {
     this.centerCameraOnPlayer();
     console.log("RTSState inicializado! 'P' para editor, 'Esc' para pausa, 'E' para interactuar.");
   }
+
+  tryPlayMusic() {
+  if (!this.gameMusic) return;
+
+  this.gameMusic.play().catch(() => {
+    console.warn("Autoplay bloqueado — esperando interacción del usuario.");
+  });
+}
+
+  onExit() {
+    if (this.menuMusic) {
+      this.menuMusic.pause();
+      this.menuMusic.currentTime = 0;
+    }
+  }
+
+  playSFX(audio) {
+  const s = audio.cloneNode(); // Permite reproducir el mismo sonido varias veces
+  s.volume = 0.1;              // Ajusta volumen
+  s.play();
+}
+
   
   onResize(width, height) { this.canvasWidth = width; this.canvasHeight = height; this.camera.width = width; this.camera.height = height; this.centerCameraOnPlayer(); }
   checkCollision(rectA, rectB) { return ( rectA.x < rectB.x + rectB.width && rectA.x + rectA.width > rectB.x && rectA.y < rectB.y + rectB.height && rectA.y + rectA.height > rectB.y ); }
@@ -245,39 +312,61 @@ export class RTSState {
     drawHUD(ctx, this.questManager);
   }
 
+
   // --- Manejo de Input ---
   handleInput(event) {
-    if (event.type === 'keydown' || event.type === 'keyup') {
-      const key = event.key.toLowerCase();
-      const isPressed = (event.type === 'keydown');
-      
-      if (key === 'w') this.keyState.w = isPressed;
-      if (key === 'a') this.keyState.a = isPressed;
-      if (key === 's') this.keyState.s = isPressed;
-      if (key === 'd') this.keyState.d = isPressed;
+  if (event.type === 'keydown' || event.type === 'keyup') {
+    const key = event.key.toLowerCase();
+    const isPressed = (event.type === 'keydown');
 
-      if (key === 'p' && isPressed) { this.debugMode = !this.debugMode; }
-      
-      // Pausa (Escape o U como respaldo)
-      if ((key === 'escape' || key === 'u') && isPressed) {
-        this.stateManager.push(new PauseState());
-      }
-      
-      // Interactuar
-      if (key === 'e' && isPressed) {
-        this.interact(); // Llama a la función interact()
-      }
+    // Movimiento
+    if ((key === 'w' || key === 'arrowup') && isPressed) 
+      this.playSFX(this.sounds.move);
+    if ((key === 'a' || key === 'arrowleft') && isPressed) 
+      this.playSFX(this.sounds.move);
+    if ((key === 's' || key === 'arrowdown') && isPressed) 
+      this.playSFX(this.sounds.move);
+    if ((key === 'd' || key === 'arrowright') && isPressed) 
+      this.playSFX(this.sounds.move);
 
-      // Editor
-      if (this.debugMode && isPressed) {
-        if (key === 'x') this.keyPress.x = true;
-        if (key === 'b') this.keyPress.b = true;
-        if (key === 'g') this.keyPress.g = true;
-        if (key === 'l') this.keyPress.l = true;
-        if (key === 'k') this.keyPress.k = true;
-      }
+    // Cambiar estado de movimiento
+    if (key === 'w' || key === 'arrowup') this.keyState.w = isPressed;
+    if (key === 'a' || key === 'arrowleft') this.keyState.a = isPressed;
+    if (key === 's' || key === 'arrowdown') this.keyState.s = isPressed;
+    if (key === 'd' || key === 'arrowright') this.keyState.d = isPressed;
+
+    // Debug Toggle
+    if (key === 'p' && isPressed) {
+      this.debugMode = !this.debugMode;
+      this.playSFX(this.sounds.debug);
+    }
+
+    // Pausa
+    if ((key === 'escape' || key === 'u') && isPressed) {
+      this.playSFX(this.sounds.pause);
+      this.onExit();
+      this.stateManager.push(new PauseState());
+    }
+
+    // Interactuar
+    if (key === 'e' && isPressed) {
+      this.playSFX(this.sounds.interact);
+      this.interact();
+    }
+
+    // Editor (solo en modo debug)
+    if (this.debugMode && isPressed) {
+      if (key === 'x') this.keyPress.x = true;
+      if (key === 'b') this.keyPress.b = true;
+      if (key === 'g') this.keyPress.g = true;
+      if (key === 'l') this.keyPress.l = true;
+      if (key === 'k') this.keyPress.k = true;
+
+      this.playSFX(this.sounds.debug);
     }
   }
+}
+
 
   exit() {
     console.log("Saliendo de RTSState");

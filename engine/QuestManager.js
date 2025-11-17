@@ -71,6 +71,11 @@ export class QuestManager {
 
         // Siguiente misión
         this.index++;
+
+        // --- NUEVO: avisar al estado del juego ---
+        if (typeof this.onMissionChange === "function") {
+            this.onMissionChange(this.getMisionActual());
+        }
     }
 
     aplicarRecompensa(recompensa) {
