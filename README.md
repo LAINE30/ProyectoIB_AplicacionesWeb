@@ -143,7 +143,6 @@ No hay.
 
 ## Capturas del juego
 
-Galería: clic en cada imagen para ver el tamaño completo.
 
 ![Menú principal — Pantalla de inicio con HUD y opciones](assets/Screenshot%202025-11-17%20181230.png)  
 *Menú principal con música y opciones de inicio.*
@@ -159,5 +158,3 @@ Galería: clic en cada imagen para ver el tamaño completo.
 
 ![Mapa / HUD ampliado](assets/Screenshot%202025-11-17%20181401.png)  
 *Vista del HUD con minimapa y barras de estado.*
-
-Nota: para mantener el repositorio ligero, considera renombrar las imágenes a nombres sin espacios (por ejemplo screenshot-1.png) y optimizarlas (compresión/webp).
