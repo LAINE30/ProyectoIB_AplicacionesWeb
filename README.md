@@ -63,8 +63,11 @@ Luego abra:
   Tecla       Acción
   ----------- -------------------------
   **W / ↑**   Moverse arriba / Saltar
+  
   **A / ←**   Moverse izquierda
+  
   **S / ↓**   Agacharse / Bajar
+  
   **D / →**   Moverse derecha
 
 ### Interacción y Sistema
@@ -72,7 +75,9 @@ Luego abra:
   Tecla         Acción
   ------------- -------------
   **E**         Interactuar
+  
   **ESC / U**   Pausar
+  
   **P**         Modo Debug
 
 
@@ -117,13 +122,22 @@ No hay.
 ## Autoevaluación
 
 •	Funcionalidad núcleo 20/25%
+
 •	Mecánicas/IA/Pathfinding o puzzles 10/15%
+
 •	Física/Colisiones 5%/10%
+
 •	Rendimiento 10%
+
 •	UX/UI 8/10%
+
 •	Audio 5%
+
 •	Código/arquitectura 10/15%
+
 •	Documentación/presentación 8/10%
+
 •	Bonus 0%/5%: multijugador simple / minimapa / PWA
+
 **TOTAL: 76/100**
 
